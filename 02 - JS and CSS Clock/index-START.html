@@ -62,13 +62,81 @@
       background:black;
       position: absolute;
       top:50%;
+      transform-origin: 100%;
+      transform: rotate(90deg);
+      transition: all 0.05s;
+      transition-timing-function: cubic-bezier(0.1, 2.7, 0.58, 1);
+      border-top-right-radius: 5px;
+      border-bottom-right-radius: 5px;
     }
 
   </style>
 
   <script>
+    const allHands = document.querySelectorAll('.hand');
 
+    const secondHand = document.querySelector('.hand.second-hand');
+    const minuteHand = document.querySelector('.hand.min-hand');
+    const hourHand = document.querySelector('.hand.hour-hand');
 
+    const DEGREE_OFFSET = 90;
+    const MINUTE_BASE = 60;
+    const HOUR_BASE = 12;
+
+    /**
+     * Convert values to degrees.
+     * @param value
+     * @param base - the base to divide by. Example: 60 for minutes/seconds, 12 for hours
+     * @return {Number}
+     */
+    function valueToDegrees(value, base = MINUTE_BASE) {
+      return (value / base) * 360;
+    }
+
+    /** 
+     * Set hand transition value.
+     * @param value
+     * @return {Function}
+     */
+    function setHandTransition(value) {
+      return function (hand) {
+        hand.style.transition = value;
+      }
+    }
+
+    /**
+     * Rotate the hand by setting the transform rotation degrees.
+     * @param hand
+     * @param degrees
+     */
+    function rotateHand(hand, degrees) {
+      hand.style.transform = `rotate(${degrees}deg)`;
+    }
+
+    function setDate() {
+      const now = new Date();
+
+      // Calculate the hand position in degrees based on the current time.
+      const secondsInDegrees = valueToDegrees(now.getSeconds());
+      const minutesInDegrees = valueToDegrees(now.getMinutes());
+      const hoursInDegrees = valueToDegrees(now.getHours(), HOUR_BASE);
+
+      // Edge case: If we are at the 90 degree offset, we need to temporarily disable
+      // the transition to prevent the jumping glitch when the unit hits 0.
+      if (secondsInDegrees === DEGREE_OFFSET) {
+        allHands.forEach(setHandTransition('none'));
+      } else {
+        allHands.forEach(setHandTransition(''));
+      }
+
+      // Rotate the hands!
+      rotateHand(secondHand, secondsInDegrees);
+      rotateHand(minuteHand, minutesInDegrees);
+      rotateHand(hourHand, hoursInDegrees);
+    }
+
+    // Calculate the new hand positions every second.
+    setInterval(setDate, 1000);
   </script>
 </body>
 </html>
